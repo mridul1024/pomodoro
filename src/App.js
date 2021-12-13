@@ -8,12 +8,6 @@ import Cycle from "./components/Cycle/index";
 
 function App() {
   const classes = useStyles();
-  // var secondTick = 1000;
-  // var minuteTick = 60000;
-  // var timerPause;
-
-  // const secondsToMinutes = (seconds) =>
-  //   Math.floor(seconds / 60) + ":" + ("0" + Math.floor(seconds % 60)).slice(-2);
 
   const [pomoCycle, setPomoCycle] = useState(2);
   const [currentTime, setCurrentTime] = useState(5);
@@ -25,7 +19,6 @@ function App() {
   const [intervalTime, setIntervalTime] = useState(3);
   const [pomoTime, setPomoTime] = useState(5);
   const [pauseStatus, setPauseStatus] = useState(false);
-  // const [timeout, setTimeout] = useState(0);
 
   const pauseState = () => {
     pauseStatus ? setPauseStatus(false) : setPauseStatus(true);
