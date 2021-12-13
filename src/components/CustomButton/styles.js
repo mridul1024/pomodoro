@@ -6,5 +6,11 @@ export const useStyles = makeStyles({
     color: "black",
     background: "white",
     borderRadius: "6px",
+    margin: "2px 2px",
+    "&:hover": {
+      background: "black",
+      border: "1px solid white",
+      color: "white",
+    },
   },
 });
