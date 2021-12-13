@@ -9,4 +9,8 @@ export const useStyles = makeStyles({
     color: "white",
     fontSize: "18px",
   },
+  buttonContainer: {
+    display: "flex",
+    flexDirection: "column",
+  },
 });

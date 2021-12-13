@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useStyles } from "./styles";
 import { Typography } from "@material-ui/core";
 
-export default function Time() {
+export default function Time({ interval, pomo, pomoCycle }) {
   const classes = useStyles();
 
   const [intervalTime, setIntervalTime] = useState(5);
@@ -11,10 +11,13 @@ export default function Time() {
   return (
     <>
       <Typography varient="text" className={classes.text}>
-        Interval Time: {intervalTime}
+        Interval Time: {interval}
       </Typography>
       <Typography varient="text" className={classes.text}>
-        Pomodoro Time: {pomoTime}
+        Pomodoro Time: {pomo}
+      </Typography>
+      <Typography varient="text" className={classes.text}>
+        Cycle: {pomoCycle}
       </Typography>
     </>
   );
