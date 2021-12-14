@@ -1,155 +1,115 @@
 import "./App.css";
-import { useState, useEffect, useRef } from "react";
-import Timer from "./components/Timer/index";
-import Time from "./components/Time/index";
-import { Typography } from "@material-ui/core";
+import { useState, useEffect } from "react";
+
+import Header from "./components/Header/index";
+import DisplayTime from "./components/DisplayTime/index";
+import { Button } from "@material-ui/core";
 import { useStyles } from "./styles";
-import Cycle from "./components/Cycle/index";
+import { ArrowDownOutlined } from "@ant-design/icons";
+import { Typography } from "@material-ui/core";
+import beepSound from "./sounds/beepsound.mp3";
 
 function App() {
   const classes = useStyles();
+  var beep = new Audio(beepSound);
 
-  const [pomoCycle, setPomoCycle] = useState(2);
-  const [currentTime, setCurrentTime] = useState(5);
-  const [breakTrigger, setBreakTrigger] = useState(false);
-  const [breakTime, setBreakTime] = useState(3);
-  const [timer, setTimer] = useState(false);
-  const [trigger, setTrigger] = useState(false);
+  const SECOND = 5; // * 60;
+  const BREAK_SECOND = 3; // * 60;
 
-  const [intervalTime, setIntervalTime] = useState(3);
-  const [pomoTime, setPomoTime] = useState(5);
-  const [pauseStatus, setPauseStatus] = useState(false);
+  const [cycle, setCycle] = useState(1);
+  const [pause, setPause] = useState(true);
+  const [sessionBreak, setSessionBreak] = useState(false);
+  const [seconds, setSeconds] = useState(SECOND);
 
-  const pauseState = () => {
-    pauseStatus ? setPauseStatus(false) : setPauseStatus(true);
-    return pauseStatus;
+  //format function
+  const formatTime = (time) => {
+    let minutes = Math.floor(time / 60);
+    let seconds = time % 60;
+    console.log(`minutes: ${minutes} seconds : ${seconds}`);
+    return `${minutes < 10 ? "0" + minutes : minutes} : ${
+      seconds < 10 ? "0" + seconds : seconds
+    }`;
   };
 
   useEffect(() => {
-    if (pauseStatus) {
-      clearInterval(timer);
-    } else if (!pauseStatus && currentTime > 0 && trigger) {
-      const timer = setInterval(() => {
-        setCurrentTime((currentTime) => currentTime - 1);
-        if (currentTime === 0) {
-          clearInterval(timer);
-          setBreakTrigger(true);
-        }
-        setTimer(timer);
+    if (!pause && cycle >= 0) {
+      let timer = setInterval(() => {
+        setSeconds((prev) => {
+          prev = prev - 1;
+          if (prev < 0 && !sessionBreak) {
+            clearInterval(localStorage.getItem("timer"));
+            // setCycle((prev) => prev - 1);
+            beep.play();
+            if (cycle !== 0) {
+              setCycle((prev) => prev - 1);
+            }
+            setSessionBreak(!sessionBreak);
+            return BREAK_SECOND;
+          } else if (prev < 0 && sessionBreak) {
+            beep.play();
+            if (cycle === 0) {
+              setSeconds(SECOND);
+              setPause(true);
+              setSessionBreak(false);
+              return clearInterval(localStorage.getItem("timer", timer));
+            }
+            clearInterval(localStorage.getItem("timer"));
+            setSessionBreak(!sessionBreak);
+            return SECOND;
+          }
+          return prev;
+        });
+        localStorage.clear();
+        localStorage.setItem("timer", timer);
       }, 1000);
-    } else if (!pauseStatus && breakTrigger && breakTime > 0) {
-      const timer = setInterval(() => {
-        setBreakTime((breakTime) => breakTime - 1);
-        if (breakTime === 0) {
-          clearInterval(timer);
-          setBreakTrigger(false);
-        }
-        setTimer(timer);
-      }, 1000);
+    } else if (pause) {
+      clearInterval(localStorage.getItem("timer"));
     }
-  }, [pauseStatus]);
-
-  useEffect(() => {
-    if (breakTrigger && trigger) {
-      const timer = setInterval(() => {
-        setBreakTime((breakTime) => breakTime - 1);
-        if (breakTime === 0) {
-          clearInterval(timer);
-          setBreakTrigger(false);
-        }
-        setTimer(timer);
-      }, 1000);
-    } else if (!breakTrigger && pomoCycle >= 0 && trigger) {
-      setTrigger(false);
-      startPomo();
-    }
-  }, [breakTrigger]);
-
-  const resetState = () => {
-    setTrigger(false);
-    setCurrentTime(5);
-    setBreakTime(3);
-    clearInterval(timer);
-    setPauseStatus(false);
-    setBreakTrigger(false);
-    setPomoCycle(2);
-  };
-
-  const resetPomo = () => {
-    setCurrentTime(5);
-    setBreakTime(3);
-    clearInterval(timer);
-    setPauseStatus(false);
-    setBreakTrigger(false);
-  };
+  }, [pause, sessionBreak]);
 
   const addCycle = () => {
-    setPomoCycle((pomoCycle) => pomoCycle + 1);
+    setCycle((prev) => prev + 1);
   };
 
-  const startPomo = () => {
-    if (!trigger && pomoCycle >= 0 && pomoCycle > 0) {
-      setTrigger(true);
-      const timer = setInterval(() => {
-        setCurrentTime((currentTime) => currentTime - 1);
-        if (currentTime === 0) {
-          clearInterval(setTimer);
-          setBreakTrigger(true);
-        }
-        setTimer(timer);
-      }, 1000);
-    } else if (trigger && !breakTrigger && pomoCycle > 0) {
-      setTrigger(true);
-      const timer = setInterval(() => {
-        setCurrentTime((currentTime) => currentTime - 1);
-        if (currentTime === 0) {
-          clearInterval(setTimer);
-          setBreakTrigger(true);
-        }
-        setTimer(timer);
-      }, 1000);
+  const removeCycle = () => {
+    if (cycle !== 0) {
+      setCycle((prev) => prev - 1);
     }
   };
-
-  useEffect(() => {
-    if (currentTime === 0 && !breakTrigger) {
-      clearInterval(timer);
-      setBreakTrigger(true);
-      setPomoCycle((pomoCycle) => pomoCycle - 1);
-    }
-  });
-
-  useEffect(() => {
-    if (breakTime === 0 && breakTrigger) {
-      clearInterval(timer);
-      resetPomo();
-    }
-  });
 
   return (
     <div className="App">
       <header className="App-header">
-        <Typography varient="text" className={classes.header}>
-          POMODORO
+        <Header text={sessionBreak ? "Have a break :)" : "Work!"} />
+        <DisplayTime time={formatTime(seconds)} />
+        <Button
+          varient="outlined"
+          className={classes.button}
+          onClick={() => setPause(!pause)}
+        >
+          {pause ? "START" : "PAUSE"}
+        </Button>
+        <br />
+        <Button
+          varient="outlined"
+          className={classes.button}
+          onClick={() => addCycle()}
+        >
+          ADD CYCLE
+        </Button>
+        <Button
+          varient="outlined"
+          className={classes.button}
+          onClick={() => removeCycle()}
+        >
+          REMOVE CYCLE
+        </Button>
+        <br />
+        <ArrowDownOutlined />
+        <br />
+        <Typography type="text" className={classes.cycleNumber}>
+          {cycle}
         </Typography>
-        <Time
-          interval={intervalTime}
-          pomo={pomoTime}
-          pomoCycle={pomoCycle}
-        ></Time>
-        <br />
-        <Timer
-          time={breakTrigger ? breakTime : currentTime}
-          pause={pauseState}
-          reset={resetState}
-          start={startPomo}
-          disable={pauseStatus}
-          startTrigger={trigger}
-          breakTrigger={breakTrigger}
-        ></Timer>
-        <br />
-        <br />
-        <Cycle cycle={addCycle}></Cycle>
       </header>
     </div>
   );
